@@ -8,6 +8,10 @@
 #include "assets.h"
 #include "utilities.h"
 
+Player player;
+EnemyManager enemyManager;
+Level level;
+
 void update_game() {
     game_frame++;
 
@@ -16,27 +20,27 @@ void update_game() {
             if (IsKeyPressed(KEY_ENTER)) {
                 SetExitKey(0);
                 game_state = GAME_STATE;
-                load_level(0);
+                level.load(0, &enemyManager);
             }
             break;
 
         case GAME_STATE:
             if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
-                move_player_horizontally(PLAYER_MOVEMENT_SPEED);
+                player.move_horizontally(PLAYER_MOVEMENT_SPEED);
             }
 
             if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {
-                move_player_horizontally(-PLAYER_MOVEMENT_SPEED);
+                player.move_horizontally(-PLAYER_MOVEMENT_SPEED);
             }
 
-            // Calculating collisions to decide whether the player is allowed to jump
-            is_player_on_ground = is_colliding({player_pos.x, player_pos.y + 0.1f}, WALL);
-            if ((IsKeyDown(KEY_UP) || IsKeyDown(KEY_W) || IsKeyDown(KEY_SPACE)) && is_player_on_ground) {
-                player_y_velocity = -JUMP_STRENGTH;
-            }
+            is_player_on_ground = is_colliding({player.pos.x, player.pos.y + 0.1f}, WALL);
+            if ((IsKeyDown(KEY_UP) || IsKeyDown(KEY_W) || IsKeyDown(KEY_SPACE)) && is_player_on_ground)
+            {
+        player.y_velocity = -JUMP_STRENGTH;
+    }
 
-            update_player();
-            update_enemies();
+            player.update(enemyManager);
+            enemyManager.update();
 
             if (IsKeyPressed(KEY_ESCAPE)) {
                 game_state = PAUSED_STATE;
@@ -50,14 +54,13 @@ void update_game() {
             break;
 
         case DEATH_STATE:
-            update_player_gravity();
+            player.update_gravity();
 
             if (IsKeyPressed(KEY_ENTER)) {
                 if (player_lives > 0) {
-                    load_level(0);
+                    level.load(0, &enemyManager);
                     game_state = GAME_STATE;
-                }
-                else {
+                } else {
                     game_state = GAME_OVER_STATE;
                     PlaySound(game_over_sound);
                 }
@@ -66,17 +69,17 @@ void update_game() {
 
         case GAME_OVER_STATE:
             if (IsKeyPressed(KEY_ENTER)) {
-                reset_level_index();
-                reset_player_stats();
+                level.reset_index();
+                player.reset();
                 game_state = GAME_STATE;
-                load_level(0);
+                level.load(0, &enemyManager);
             }
             break;
 
         case VICTORY_STATE:
             if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_ESCAPE)) {
-                reset_level_index();
-                reset_player_stats();
+                level.reset_index();
+                player.reset();
                 game_state = MENU_STATE;
                 SetExitKey(KEY_ESCAPE);
             }
@@ -85,7 +88,7 @@ void update_game() {
 }
 
 void draw_game() {
-    switch(game_state) {
+    switch (game_state) {
         case MENU_STATE:
             ClearBackground(BLACK);
             draw_menu();
@@ -95,6 +98,8 @@ void draw_game() {
             ClearBackground(BLACK);
             draw_parallax_background();
             draw_level();
+            player.draw();
+            enemyManager.draw(player);
             draw_game_overlay();
             break;
 
@@ -128,7 +133,7 @@ int main() {
     load_fonts();
     load_images();
     load_sounds();
-    load_level();
+    level.load(0, &enemyManager);
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -139,7 +144,7 @@ int main() {
         EndDrawing();
     }
 
-    unload_level();
+    level.unload();
     unload_sounds();
     unload_images();
     unload_fonts();
