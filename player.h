@@ -1,26 +1,21 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "raylib.h"
 #include "globals.h"
-
-class EnemyManager;
 
 class Player {
 public:
-    Vector2 pos;
+    Vector2 pos{};
     float y_velocity = 0;
 
     void reset();
     void spawn();
     void kill();
     void move_horizontally(float delta);
-    void update(EnemyManager& enemyManager);
     void update_gravity();
-    void draw();
-
-private:
-    bool on_ground = false;
+    void update(class EnemyManager &enemyManager, class Level &level);
+    void draw() const;
+    int get_total_score() const;
 };
 
-#endif
+#endif // PLAYER_H

@@ -12,7 +12,7 @@ public:
 
     void spawn();
     void update();
-    void draw(const Player& player);
+    void draw(const Player& player) const;
     bool is_colliding(Vector2 pos);
     void remove_colliding(Vector2 pos);
 };

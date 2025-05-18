@@ -47,7 +47,7 @@ void EnemyManager::remove_colliding(Vector2 pos) {
     }
 }
 
-void EnemyManager::draw(const Player& player) {
+void EnemyManager::draw(const Player& player) const {
     float h_shift = (screen_size.x - cell_size) / 2;
     for (auto &enemy : enemies) {
         Vector2 pos = {(enemy.pos.x - player.pos.x) * cell_size + h_shift, enemy.pos.y * cell_size};

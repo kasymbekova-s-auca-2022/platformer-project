@@ -1,5 +1,4 @@
 #include "raylib.h"
-
 #include "globals.h"
 #include "level.h"
 #include "player.h"
@@ -28,18 +27,16 @@ void update_game() {
             if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
                 player.move_horizontally(PLAYER_MOVEMENT_SPEED);
             }
-
             if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {
                 player.move_horizontally(-PLAYER_MOVEMENT_SPEED);
             }
 
             is_player_on_ground = is_colliding({player.pos.x, player.pos.y + 0.1f}, WALL);
-            if ((IsKeyDown(KEY_UP) || IsKeyDown(KEY_W) || IsKeyDown(KEY_SPACE)) && is_player_on_ground)
-            {
-        player.y_velocity = -JUMP_STRENGTH;
-    }
+            if ((IsKeyDown(KEY_UP) || IsKeyDown(KEY_W) || IsKeyDown(KEY_SPACE)) && is_player_on_ground) {
+                player.y_velocity = -JUMP_STRENGTH;
+            }
 
-            player.update(enemyManager);
+            player.update(enemyManager, level);
             enemyManager.update();
 
             if (IsKeyPressed(KEY_ESCAPE)) {
@@ -55,7 +52,6 @@ void update_game() {
 
         case DEATH_STATE:
             player.update_gravity();
-
             if (IsKeyPressed(KEY_ENTER)) {
                 if (player_lives > 0) {
                     level.load(0, &enemyManager);
@@ -96,16 +92,16 @@ void draw_game() {
 
         case GAME_STATE:
             ClearBackground(BLACK);
-            draw_parallax_background();
-            draw_level();
+            draw_parallax_background(player);
+            draw_level(player, level);
             player.draw();
             enemyManager.draw(player);
-            draw_game_overlay();
+            draw_game_overlay(player);
             break;
 
         case DEATH_STATE:
             ClearBackground(BLACK);
-            draw_death_screen();
+            draw_death_screen(player, enemyManager, level);
             break;
 
         case GAME_OVER_STATE:
@@ -137,10 +133,8 @@ int main() {
 
     while (!WindowShouldClose()) {
         BeginDrawing();
-
         update_game();
         draw_game();
-
         EndDrawing();
     }
 
@@ -151,6 +145,5 @@ int main() {
 
     CloseAudioDevice();
     CloseWindow();
-
     return 0;
 }
