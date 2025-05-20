@@ -25,10 +25,10 @@ void update_game() {
 
         case GAME_STATE:
             if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
-                player.move_horizontally(PLAYER_MOVEMENT_SPEED);
+                player.move_horizontally(PLAYER_MOVEMENT_SPEED, level);
             }
             if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {
-                player.move_horizontally(-PLAYER_MOVEMENT_SPEED);
+                player.move_horizontally(-PLAYER_MOVEMENT_SPEED, level);
             }
 
             is_player_on_ground = is_colliding({player.pos.x, player.pos.y + 0.1f}, WALL);
@@ -51,7 +51,7 @@ void update_game() {
             break;
 
         case DEATH_STATE:
-            player.update_gravity();
+            player.update_gravity(level);
             if (IsKeyPressed(KEY_ENTER)) {
                 if (player_lives > 0) {
                     level.load(0, &enemyManager);

@@ -15,5 +15,6 @@ add_executable(platformer platformer.cpp globals.h graphics.h level.h player.h e
         level.cpp
         player.cpp
         level_util.cpp
-        rle_loader.h)
+        rle_loader.h
+        rle_loader.cpp)
 target_link_libraries(platformer PRIVATE raylib)

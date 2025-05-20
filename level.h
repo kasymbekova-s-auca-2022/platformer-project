@@ -18,6 +18,10 @@ public:
     void set_cell(size_t row, size_t col, char value);
     char& get_collider(Vector2 pos, char look_for);
 
+    size_t get_index() const { return level_index_; }
+    size_t get_rows() const { return current_level.rows; }
+    size_t get_cols() const { return current_level.columns; }
+
 private:
     int level_index_ = 0;
 };

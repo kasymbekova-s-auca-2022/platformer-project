@@ -4,87 +4,88 @@
 
 void Player::reset() {
     player_lives = MAX_PLAYER_LIVES;
-    for (int i = 0; i < LEVEL_COUNT; ++i) player_level_scores[i] = 0;
+    for (int i = 0; i < 20; ++i) {
+        level_scores[i] = 0;
+    }
 }
 
-void Player::spawn() {
+void Player::spawn(Level& level) {
     y_velocity = 0;
     for (size_t row = 0; row < current_level.rows; ++row) {
         for (size_t col = 0; col < current_level.columns; ++col) {
-            if (get_level_cell(row, col) == PLAYER) {
-                pos = {float(col), float(row)};
-                set_level_cell(row, col, AIR);
+            if (level.get_cell(row, col) == PLAYER) {
+                pos = {static_cast<float>(col), static_cast<float>(row)};
+                level.set_cell(row, col, AIR);
                 return;
             }
         }
     }
 }
 
-void Player::kill() {
+void Player::kill(Level& level) {
     PlaySound(player_death_sound);
     game_state = DEATH_STATE;
     player_lives--;
-    player_level_scores[level_index] = 0;
+    level_scores[level.get_index()] = 0;
 }
 
-void Player::move_horizontally(float delta) {
+void Player::move_horizontally(float delta, const Level& level) {
     float next_x = pos.x + delta;
-    if (!is_colliding({next_x, pos.y}, WALL)) pos.x = next_x;
-    else pos.x = roundf(pos.x);
+    if (!level.is_colliding({next_x, pos.y}, WALL)) {
+        pos.x = next_x;
+    } else {
+        pos.x = roundf(pos.x);
+    }
 
     is_looking_forward = delta > 0;
     if (delta != 0) is_moving = true;
 }
 
-void Player::update_gravity() {
-    if (is_colliding({pos.x, pos.y - 0.1f}, WALL) && y_velocity < 0)
+void Player::update_gravity(const Level& level) {
+    if (level.is_colliding({pos.x, pos.y - 0.1f}, WALL) && y_velocity < 0) {
         y_velocity = CEILING_BOUNCE_OFF;
+    }
 
     pos.y += y_velocity;
     y_velocity += GRAVITY_FORCE;
 
-    is_player_on_ground = is_colliding({pos.x, pos.y + 0.1f}, WALL);
-    if (is_player_on_ground) {
+    if (level.is_colliding({pos.x, pos.y + 0.1f}, WALL)) {
         y_velocity = 0;
         pos.y = roundf(pos.y);
     }
 }
 
 void Player::update(EnemyManager &enemyManager, Level &level) {
-    update_gravity();
+    update_gravity(level);
 
-    if (is_colliding(pos, COIN)) {
-        get_collider(pos, COIN) = AIR;
+    Vector2 center = {pos.x + 0.5f, pos.y + 0.5f};
+
+    if (level.is_colliding(center, COIN)) {
+        level.set_cell((size_t)pos.y, (size_t)pos.x, AIR);
         PlaySound(coin_sound);
-        player_level_scores[level_index]++;
+        level_scores[level.get_index()]++;
     }
 
-    if (is_colliding(pos, EXIT)) {
-        if (timer > 0) {
-            timer -= 25;
-            time_to_coin_counter += 5;
-            if (time_to_coin_counter / 60 > 1) {
-                player_level_scores[level_index]++;
-                time_to_coin_counter = 0;
-            }
-        } else {
-            level.load(1, &enemyManager);
-            PlaySound(exit_sound);
-        }
-    } else {
-        if (timer >= 0) timer--;
+    if (level.is_colliding(center, EXIT)) {
+        PlaySound(exit_sound);
+        level.load(1, &enemyManager);
+        return;
     }
 
-    if (is_colliding(pos, SPIKE) || pos.y > current_level.rows)
-        kill();
+    if (level.is_colliding(center, SPIKE) || pos.y > level.get_rows()) {
+        kill(level);
+        return;
+    }
 
     if (enemyManager.is_colliding(pos)) {
         if (y_velocity > 0) {
             enemyManager.remove_colliding(pos);
             PlaySound(kill_enemy_sound);
-            player_level_scores[level_index]++;
+            level_scores[level.get_index()]++;
             y_velocity = -BOUNCE_OFF_ENEMY;
-        } else kill();
+        } else {
+            kill(level);
+        }
     }
 }
 
@@ -107,6 +108,8 @@ void Player::draw() const {
 
 int Player::get_total_score() const {
     int sum = 0;
-    for (int i = 0; i < LEVEL_COUNT; ++i) sum += player_level_scores[i];
+    for (int i = 0; i < 20; ++i) {
+        sum += level_scores[i];
+    }
     return sum;
 }

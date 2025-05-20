@@ -41,15 +41,17 @@ inline std::vector<RLELevel> load_rle_levels(const std::string& path) {
             std::vector<char> row;
             for (size_t i = 0; i < rle_row.size();) {
                 size_t count = 0;
-                while (i < rle_row.size() && isdigit(rle_row[i])) {
+                while (i < rle_row.size() && std::isdigit(rle_row[i])) {
                     count = count * 10 + (rle_row[i] - '0');
                     ++i;
                 }
                 if (i < rle_row.size()) {
                     char ch = rle_row[i++];
+                    if (count == 0) count = 1;  // <- фикс: если не указано число, по умолчанию 1
                     row.insert(row.end(), count, ch);
                 }
             }
+
             if (row.size() > cols) cols = row.size();
             data.insert(data.end(), row.begin(), row.end());
         }
