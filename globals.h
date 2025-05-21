@@ -38,7 +38,7 @@ inline int time_to_coin_counter = 0;
 
 /* Physics constants */
 
-inline const float PLAYER_MOVEMENT_SPEED = 0.1f;
+inline const float PLAYER_MOVEMENT_SPEED = 0.0f;
 inline const float JUMP_STRENGTH         = 0.3f;
 inline const float CEILING_BOUNCE_OFF    = 0.05f;
 inline const float ENEMY_MOVEMENT_SPEED  = 0.07f;

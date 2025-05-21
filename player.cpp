@@ -31,10 +31,12 @@ void Player::kill(Level& level) {
 
 void Player::move_horizontally(float delta, const Level& level) {
     float next_x = pos.x + delta;
-    if (!level.is_colliding({next_x, pos.y}, WALL)) {
+    Rectangle hitbox = {next_x, pos.y, 1.0f, 1.0f};
+
+    if (!level.is_colliding({hitbox.x, hitbox.y}, WALL)) {
         pos.x = next_x;
     } else {
-        pos.x = roundf(pos.x);
+        //pos.x = floorf(pos.x + (delta > 0 ? 0.0f : 1.0f));
     }
 
     is_looking_forward = delta > 0;
@@ -42,37 +44,36 @@ void Player::move_horizontally(float delta, const Level& level) {
 }
 
 void Player::update_gravity(const Level& level) {
-    if (level.is_colliding({pos.x, pos.y - 0.1f}, WALL) && y_velocity < 0) {
+    if (level.is_colliding({pos.x, pos.y - 0.01f}, WALL) && y_velocity < 0) {
         y_velocity = CEILING_BOUNCE_OFF;
     }
 
     pos.y += y_velocity;
     y_velocity += GRAVITY_FORCE;
 
-    if (level.is_colliding({pos.x, pos.y + 0.1f}, WALL)) {
+    if (level.is_colliding({pos.x, pos.y + 1.0f}, WALL)) {
         y_velocity = 0;
-        pos.y = roundf(pos.y);
+        pos.y = floorf(pos.y);
     }
 }
 
 void Player::update(EnemyManager &enemyManager, Level &level) {
     update_gravity(level);
 
-    Vector2 center = {pos.x + 0.5f, pos.y + 0.5f};
-
-    if (level.is_colliding(center, COIN)) {
+    if (level.is_colliding(pos, COIN)) {
         level.set_cell((size_t)pos.y, (size_t)pos.x, AIR);
         PlaySound(coin_sound);
         level_scores[level.get_index()]++;
     }
 
-    if (level.is_colliding(center, EXIT)) {
+    if (level.is_colliding(pos, EXIT)) {
         PlaySound(exit_sound);
         level.load(1, &enemyManager);
+        spawn(level);
         return;
     }
 
-    if (level.is_colliding(center, SPIKE) || pos.y > level.get_rows()) {
+    if (level.is_colliding(pos, SPIKE) || pos.y > level.get_rows()) {
         kill(level);
         return;
     }
@@ -91,18 +92,21 @@ void Player::update(EnemyManager &enemyManager, Level &level) {
 
 void Player::draw() const {
     float shift = (screen_size.x - cell_size) / 2;
-    Vector2 draw_pos = {shift, pos.y * cell_size};
+    Vector2 screen_pos = {
+            shift,
+            pos.y * cell_size
+    };
 
     if (game_state == GAME_STATE) {
         if (!is_player_on_ground)
-            draw_image(is_looking_forward ? player_jump_forward_image : player_jump_backwards_image, draw_pos, cell_size);
+            draw_image(is_looking_forward ? player_jump_forward_image : player_jump_backwards_image, screen_pos, cell_size);
         else if (is_moving)
-            draw_sprite(is_looking_forward ? player_walk_forward_sprite : player_walk_backwards_sprite, draw_pos, cell_size);
+            draw_sprite(is_looking_forward ? player_walk_forward_sprite : player_walk_backwards_sprite, screen_pos, cell_size);
         else
-            draw_image(is_looking_forward ? player_stand_forward_image : player_stand_backwards_image, draw_pos, cell_size);
+            draw_image(is_looking_forward ? player_stand_forward_image : player_stand_backwards_image, screen_pos, cell_size);
         is_moving = false;
     } else {
-        draw_image(player_dead_image, draw_pos, cell_size);
+        draw_image(player_dead_image, screen_pos, cell_size);
     }
 }
 

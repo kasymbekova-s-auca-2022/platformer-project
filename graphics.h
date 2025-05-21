@@ -17,7 +17,7 @@ inline void draw_text(Text &text) {
 
 inline void derive_graphics_metrics_from_loaded_level() {
     screen_size = {(float)GetScreenWidth(), (float)GetScreenHeight()};
-    cell_size = screen_size.y / current_level.rows;
+    cell_size = screen_size.y / static_cast<float>(current_level.rows);
     screen_scale = std::min(screen_size.x, screen_size.y) / SCREEN_SCALE_DIVISOR;
 
     float large = std::max(screen_size.x, screen_size.y);
@@ -57,16 +57,20 @@ inline void draw_game_overlay(const Player& player) {
 inline void draw_level(const Player& player, const Level& level) {
     horizontal_shift = (screen_size.x - cell_size) / 2;
 
-    for (size_t row = 0; row < current_level.rows; ++row) {
-        for (size_t col = 0; col < current_level.columns; ++col) {
-            Vector2 pos = {(float(col) - player.pos.x) * cell_size + horizontal_shift, float(row) * cell_size};
+    for (size_t row = 0; row < level.get_rows(); ++row) {
+        for (size_t col = 0; col < level.get_cols(); ++col) {
+            Vector2 screen_pos = {
+                    (static_cast<float>(col) - player.pos.x) * cell_size + horizontal_shift,
+                    static_cast<float>(row) * cell_size
+            };
+
             char cell = level.get_cell(row, col);
             switch (cell) {
-                case WALL: draw_image(wall_image, pos, cell_size); break;
-                case WALL_DARK: draw_image(wall_dark_image, pos, cell_size); break;
-                case SPIKE: draw_image(spike_image, pos, cell_size); break;
-                case COIN: draw_sprite(coin_sprite, pos, cell_size); break;
-                case EXIT: draw_image(exit_image, pos, cell_size); break;
+                case WALL:       draw_image(wall_image, screen_pos, cell_size); break;
+                case WALL_DARK:  draw_image(wall_dark_image, screen_pos, cell_size); break;
+                case SPIKE:      draw_image(spike_image, screen_pos, cell_size); break;
+                case COIN:       draw_sprite(coin_sprite, screen_pos, cell_size); break;
+                case EXIT:       draw_image(exit_image, screen_pos, cell_size); break;
                 default: break;
             }
         }
@@ -102,11 +106,11 @@ inline void draw_victory_menu() {
 }
 
 inline void create_victory_menu_background() {
-    // Временная заглушка. Настоящая реализация может создавать анимации, например шары победы.
+    // Временная заглушка
 }
 
 inline void animate_victory_menu_background() {
-    // Временная заглушка. Здесь обычно двигаются объекты на фоне.
+    // Временная заглушка
 }
 
 #endif // GRAPHICS_H

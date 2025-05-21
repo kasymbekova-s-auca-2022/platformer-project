@@ -43,20 +43,17 @@ bool Level::is_inside(int row, int col) const {
 }
 
 bool Level::is_colliding(Vector2 pos, char look_for) const {
-    Rectangle hitbox = {pos.x, pos.y, 1.0f, 1.0f};
+    int row = static_cast<int>(floor(pos.y));
+    int col = static_cast<int>(round(pos.x));
 
-    for (int row = static_cast<int>(pos.y) - 1; row <= static_cast<int>(pos.y); ++row) {
-        for (int col = static_cast<int>(pos.x) - 1; col <= static_cast<int>(pos.x); ++col) {
-            if (!is_inside(row, col)) continue;
+    if (!is_inside(row, col)) return false;
 
-            if (get_cell(row, col) == look_for) {
-                Rectangle block = {(float) col, (float) row, 1.0f, 1.0f};
-                if (CheckCollisionRecs(hitbox, block)) {
-                    return true;
-                }
-            }
-        }
+    if (get_cell(row, col) == look_for) {
+        Rectangle block = {(float)col, (float)row, 1.0f, 1.0f};
+        Rectangle hitbox = {pos.x, pos.y, 1.0f, 1.0f};
+        return CheckCollisionRecs(hitbox, block);
     }
+
     return false;
 }
 

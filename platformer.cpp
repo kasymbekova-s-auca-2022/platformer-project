@@ -55,6 +55,7 @@ void update_game() {
             if (IsKeyPressed(KEY_ENTER)) {
                 if (player_lives > 0) {
                     level.load(0, &enemyManager);
+                    player.spawn(level);
                     game_state = GAME_STATE;
                 } else {
                     game_state = GAME_OVER_STATE;

@@ -83,4 +83,4 @@ inline std::vector<RLELevel> load_rle_levels(const std::string& path) {
     return levels;
 }
 
-#endif // RLE_LOADER_H
+#endif
